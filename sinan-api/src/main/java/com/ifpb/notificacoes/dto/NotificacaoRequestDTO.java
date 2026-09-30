@@ -1,6 +1,8 @@
 package com.ifpb.notificacoes.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
@@ -9,6 +11,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PositiveOrZero;
 
 import java.time.LocalDate;
+import java.time.Period;
 
 public class NotificacaoRequestDTO {
 
@@ -22,13 +25,18 @@ public class NotificacaoRequestDTO {
     @PastOrPresent(message = "A data da notificação não pode ser futura")
     private LocalDate dataNotificacao;
 
+    @NotBlank(message = "A UF da notificação é obrigatória")
     private String ufNotificacao;
+
     private String municipioNotificacao;
     private String codigoIbgeNotificacao;
 
+    @NotBlank(message = "A unidade de saúde notificadora é obrigatória")
     private String unidadeSaude;
+
     private String codigoUnidadeSaude;
 
+    @NotNull(message = "A data dos primeiros sintomas é obrigatória")
     @PastOrPresent(message = "A data dos primeiros sintomas não pode ser futura")
     private LocalDate dataPrimeirosSintomas;
 
@@ -36,7 +44,6 @@ public class NotificacaoRequestDTO {
     @NotBlank(message = "O nome do paciente é obrigatório")
     private String nomePaciente;
 
-    @NotNull(message = "A data de nascimento é obrigatória")
     @Past(message = "A data de nascimento deve estar no passado")
     private LocalDate dataNascimento;
 
@@ -45,6 +52,7 @@ public class NotificacaoRequestDTO {
 
     private Integer unidadeIdade;
 
+    @NotBlank(message = "O sexo é obrigatório")
     @Pattern(regexp = "[MFImfi]", message = "Sexo deve ser M, F ou I")
     private String sexo;
 
@@ -56,7 +64,6 @@ public class NotificacaoRequestDTO {
     @Pattern(regexp = "\\d{15}", message = "O cartão SUS deve ter 15 dígitos")
     private String cartaoSus;
 
-    @NotBlank(message = "O nome da mãe é obrigatório")
     private String nomeMae;
 
     // Dados de residência
@@ -411,5 +418,45 @@ public class NotificacaoRequestDTO {
 
     public void setFuncaoInvestigador(String funcaoInvestigador) {
         this.funcaoInvestigador = funcaoInvestigador;
+    }
+
+    // Validações condicionais (RN02)
+    @JsonIgnore
+    @AssertTrue(message = "A idade é obrigatória quando a data de nascimento não é informada")
+    public boolean isIdadeObrigatoriaSemNascimento() {
+        return dataNascimento != null || idade != null;
+    }
+
+    @JsonIgnore
+    @AssertTrue(message = "A unidade da idade é obrigatória quando a idade é informada")
+    public boolean isUnidadeIdadeObrigatoriaComIdade() {
+        return idade == null || unidadeIdade != null;
+    }
+
+    @JsonIgnore
+    @AssertTrue(message = "O campo gestante é obrigatório para pacientes do sexo feminino")
+    public boolean isGestanteObrigatorioParaSexoFeminino() {
+        if (!"F".equalsIgnoreCase(sexo)) {
+            return true;
+        }
+        if (gestante != null) {
+            return true;
+        }
+        return menorDeSeteAnos();
+    }
+
+    private boolean menorDeSeteAnos() {
+        if (dataNascimento != null) {
+            return Period.between(dataNascimento, LocalDate.now()).getYears() < 7;
+        }
+        if (idade != null && unidadeIdade != null) {
+            return switch (unidadeIdade) {
+                case 4 -> idade < 7;
+                case 3 -> idade < 84;
+                case 2 -> idade < 2555;
+                default -> true;
+            };
+        }
+        return false;
     }
 }

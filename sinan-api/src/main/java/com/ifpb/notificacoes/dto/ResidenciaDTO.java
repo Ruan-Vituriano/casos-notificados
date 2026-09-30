@@ -1,15 +1,14 @@
 package com.ifpb.notificacoes.dto;
 
-import jakarta.validation.constraints.NotBlank;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Pattern;
 
 public class ResidenciaDTO {
 
-    @NotBlank(message = "A UF de residência é obrigatória")
     @Pattern(regexp = "[A-Za-z]{2}", message = "A UF deve ter 2 letras")
     private String uf;
 
-    @NotBlank(message = "O município de residência é obrigatório")
     private String municipio;
 
     private String codigoIbge;
@@ -162,5 +161,22 @@ public class ResidenciaDTO {
 
     public void setPais(String pais) {
         this.pais = pais;
+    }
+
+    // Validações condicionais (RN03)
+    @JsonIgnore
+    @AssertTrue(message = "O país de residência é obrigatório quando a UF não é informada (residente no exterior)")
+    public boolean isPaisObrigatorioSemUf() {
+        return temTexto(uf) || temTexto(pais);
+    }
+
+    @JsonIgnore
+    @AssertTrue(message = "O município de residência é obrigatório quando a UF é informada")
+    public boolean isMunicipioObrigatorioComUf() {
+        return !temTexto(uf) || temTexto(municipio);
+    }
+
+    private boolean temTexto(String valor) {
+        return valor != null && !valor.isBlank();
     }
 }
