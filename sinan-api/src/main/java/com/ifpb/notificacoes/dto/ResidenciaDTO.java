@@ -1,9 +1,17 @@
-package com.ifpb.notificacoes.model;
+package com.ifpb.notificacoes.dto;
 
-public class Residencia {
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 
+public class ResidenciaDTO {
+
+    @NotBlank(message = "A UF de residência é obrigatória")
+    @Pattern(regexp = "[A-Za-z]{2}", message = "A UF deve ter 2 letras")
     private String uf;
+
+    @NotBlank(message = "O município de residência é obrigatório")
     private String municipio;
+
     private String codigoIbge;
     private String distrito;
 
@@ -17,13 +25,15 @@ public class Residencia {
 
     private String geoCampo2;
     private String pontoReferencia;
+
+    @Pattern(regexp = "\\d{5}-?\\d{3}", message = "CEP inválido (use 00000-000 ou 00000000)")
     private String cep;
 
     private String telefone;
     private Integer zona;
     private String pais;
 
-    public Residencia() {
+    public ResidenciaDTO() {
     }
 
     public String getUf() {
