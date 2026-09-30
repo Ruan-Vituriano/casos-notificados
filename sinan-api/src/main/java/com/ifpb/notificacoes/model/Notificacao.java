@@ -60,6 +60,12 @@ public class Notificacao {
 
     private String observacoes;
 
+    // dados do investigador
+    private String municipioUnidadeInvestigador;
+    private String codigoUnidadeInvestigador;
+    private String nomeInvestigador;
+    private String funcaoInvestigador;
+
     public Notificacao() {
     }
 
@@ -349,5 +355,37 @@ public class Notificacao {
 
     public void setObservacoes(String observacoes) {
         this.observacoes = observacoes;
+    }
+
+    public String getMunicipioUnidadeInvestigador() {
+        return municipioUnidadeInvestigador;
+    }
+
+    public void setMunicipioUnidadeInvestigador(String municipioUnidadeInvestigador) {
+        this.municipioUnidadeInvestigador = municipioUnidadeInvestigador;
+    }
+
+    public String getCodigoUnidadeInvestigador() {
+        return codigoUnidadeInvestigador;
+    }
+
+    public void setCodigoUnidadeInvestigador(String codigoUnidadeInvestigador) {
+        this.codigoUnidadeInvestigador = codigoUnidadeInvestigador;
+    }
+
+    public String getNomeInvestigador() {
+        return nomeInvestigador;
+    }
+
+    public void setNomeInvestigador(String nomeInvestigador) {
+        this.nomeInvestigador = nomeInvestigador;
+    }
+
+    public String getFuncaoInvestigador() {
+        return funcaoInvestigador;
+    }
+
+    public void setFuncaoInvestigador(String funcaoInvestigador) {
+        this.funcaoInvestigador = funcaoInvestigador;
     }
 }
