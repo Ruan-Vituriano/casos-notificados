@@ -3,9 +3,11 @@ package com.ifpb.notificacoes.exception;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.net.URI;
 
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(RegraNegocioException.class)
@@ -21,6 +23,20 @@ public class GlobalExceptionHandler {
         problemDetail.setTitle("Violação de Regra de Negócio");
 
         // Você pode adicionar propriedades customizadas que farão parte do JSON final
+        problemDetail.setProperty("timestamp", System.currentTimeMillis());
+
+        return problemDetail;
+    }
+
+    @ExceptionHandler(NotificacaoNaoEncontradaException.class)
+    public ProblemDetail handleNotificacaoNaoEncontrada(NotificacaoNaoEncontradaException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                ex.getMessage()
+        );
+
+        problemDetail.setType(URI.create("https://sua-api.com/erros/notificacao-nao-encontrada"));
+        problemDetail.setTitle("Notificação não encontrada");
         problemDetail.setProperty("timestamp", System.currentTimeMillis());
 
         return problemDetail;
