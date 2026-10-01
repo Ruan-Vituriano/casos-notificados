@@ -67,4 +67,19 @@ class NotificacaoServiceTest {
         assertThrows(NotificacaoNaoEncontradaException.class,
                 () -> service.atualizar(99L, requisicao("Maria", "Cajazeiras")));
     }
+
+    @Test
+    void excluirRemoveONotificacaoExistente() {
+        service.criar(requisicao("Maria da Silva", "Cajazeiras"));
+
+        service.excluir(1L);
+
+        assertThrows(NotificacaoNaoEncontradaException.class,
+                () -> service.atualizar(1L, requisicao("Maria", "Cajazeiras")));
+    }
+
+    @Test
+    void excluirIdInexistenteLancaExcecao() {
+        assertThrows(NotificacaoNaoEncontradaException.class, () -> service.excluir(99L));
+    }
 }

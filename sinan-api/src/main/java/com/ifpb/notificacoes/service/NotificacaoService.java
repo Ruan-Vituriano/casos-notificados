@@ -38,6 +38,15 @@ public class NotificacaoService {
         return paraResposta(repository.salvar(notificacao));
     }
 
+    public void excluir(Long id) {
+
+        boolean removida = repository.excluirPorId(id);
+
+        if (!removida) {
+            throw new NotificacaoNaoEncontradaException(id);
+        }
+    }
+
     public NotificacaoResponseDTO paraResposta(Notificacao notificacao) {
 
         NotificacaoResponseDTO resposta = new NotificacaoResponseDTO();

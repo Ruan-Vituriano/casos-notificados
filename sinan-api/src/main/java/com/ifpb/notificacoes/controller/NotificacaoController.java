@@ -5,6 +5,7 @@ import com.ifpb.notificacoes.dto.NotificacaoResponseDTO;
 import com.ifpb.notificacoes.service.NotificacaoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -43,5 +44,13 @@ public class NotificacaoController {
                                                             @Valid @RequestBody NotificacaoRequestDTO dto) {
 
         return ResponseEntity.ok(service.atualizar(id, dto));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> excluir(@PathVariable Long id) {
+
+        service.excluir(id);
+
+        return ResponseEntity.noContent().build();
     }
 }
