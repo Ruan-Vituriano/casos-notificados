@@ -1,6 +1,7 @@
 package com.ifpb.notificacoes.model;
 
 import java.time.LocalDate;
+//import com.ifpb.notificacoes.model.Residencia;
 
 public class Notificacao {
 
