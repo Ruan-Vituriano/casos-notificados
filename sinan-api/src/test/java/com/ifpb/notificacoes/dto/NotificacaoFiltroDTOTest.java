@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class NotificacaoFiltroDTOTest {
@@ -28,10 +29,11 @@ class NotificacaoFiltroDTOTest {
         NotificacaoFiltroDTO dto = filtro();
 
         assertTrue(validator.validate(dto).isEmpty());
-        assertEquals(0, dto.getPagina());
-        assertEquals(20, dto.getTamanho());
+        assertEquals(1, dto.getPagina());
+        assertEquals(10, dto.getTamanho());
         assertEquals("dataNotificacao", dto.getOrdenarPor());
-        assertEquals("desc", dto.getDirecao());
+        assertEquals("DESC", dto.getOrdem());
+        assertFalse(dto.isBuscarDuplicadas());
     }
 
     @Test
@@ -46,17 +48,28 @@ class NotificacaoFiltroDTOTest {
         dto.setPagina(2);
         dto.setTamanho(50);
         dto.setOrdenarPor("nomePaciente");
-        dto.setDirecao("asc");
+        dto.setOrdem("ASC");
 
         assertTrue(validator.validate(dto).isEmpty());
     }
 
     @Test
-    void paginaNegativaGeraErro() {
-        NotificacaoFiltroDTO dto = filtro();
-        dto.setPagina(-1);
+    void paginaZeroOuNegativaGeraErro() {
+        NotificacaoFiltroDTO zero = filtro();
+        zero.setPagina(0);
+        assertTrue(temErro(validator.validate(zero), "página deve ser no mínimo 1"));
 
-        assertTrue(temErro(validator.validate(dto), "página não pode ser negativa"));
+        NotificacaoFiltroDTO negativa = filtro();
+        negativa.setPagina(-1);
+        assertTrue(temErro(validator.validate(negativa), "página deve ser no mínimo 1"));
+    }
+
+    @Test
+    void paginaUmEhValida() {
+        NotificacaoFiltroDTO dto = filtro();
+        dto.setPagina(1);
+
+        assertTrue(validator.validate(dto).isEmpty());
     }
 
     @Test
@@ -79,19 +92,43 @@ class NotificacaoFiltroDTOTest {
     }
 
     @Test
-    void direcaoDesconhecidaGeraErro() {
+    void ordemDesconhecidaGeraErro() {
         NotificacaoFiltroDTO dto = filtro();
-        dto.setDirecao("lateral");
+        dto.setOrdem("lateral");
 
-        assertTrue(temErro(validator.validate(dto), "asc ou desc"));
+        assertTrue(temErro(validator.validate(dto), "ASC ou DESC"));
     }
 
     @Test
-    void direcaoEmMaiusculasNaoGeraErro() {
-        NotificacaoFiltroDTO dto = filtro();
-        dto.setDirecao("DESC");
+    void ordemEmMaiusculasEMinusculasNaoGeraErro() {
+        for (String ordem : new String[]{"ASC", "DESC", "asc", "desc"}) {
+            NotificacaoFiltroDTO dto = filtro();
+            dto.setOrdem(ordem);
 
-        assertTrue(validator.validate(dto).isEmpty());
+            assertTrue(validator.validate(dto).isEmpty(), ordem);
+        }
+    }
+
+    @Test
+    void ordemVaziaGeraErro() {
+        NotificacaoFiltroDTO dto = filtro();
+        dto.setOrdem("");
+
+        assertTrue(temErro(validator.validate(dto), "ASC ou DESC"));
+    }
+
+    @Test
+    void duplicadasTrueAtivaABuscaDeDuplicadas() {
+        NotificacaoFiltroDTO dto = filtro();
+
+        dto.setDuplicadas(true);
+        assertTrue(dto.isBuscarDuplicadas());
+
+        dto.setDuplicadas(false);
+        assertFalse(dto.isBuscarDuplicadas());
+
+        dto.setDuplicadas(null);
+        assertFalse(dto.isBuscarDuplicadas());
     }
 
     @Test

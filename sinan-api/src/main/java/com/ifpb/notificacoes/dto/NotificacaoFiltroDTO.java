@@ -12,14 +12,18 @@ import java.time.LocalDate;
  * Parâmetros de consulta do GET /notificacao: filtros, paginação e ordenação.
  *
  * <p>Todos os parâmetros são opcionais. Quando ausentes, valem os valores padrão
- * dos campos, o que equivale a "sem filtro" e "primeira página, 20 itens,
+ * dos campos, o que equivale a "sem filtro" e "primeira página, 10 itens,
  * data de notificação mais recente primeiro".
+ *
+ * <p>A página é numerada a partir de 1. Com {@code duplicadas=true}, só voltam as
+ * notificações que têm ao menos uma duplicata (veja {@code NotificacaoService}).
  */
 public class NotificacaoFiltroDTO {
 
     public static final String ORDENAR_POR_PADRAO = "dataNotificacao";
-    public static final String DIRECAO_PADRAO = "desc";
-    public static final int TAMANHO_PADRAO = 20;
+    public static final String ORDEM_PADRAO = "DESC";
+    public static final int PAGINA_PADRAO = 1;
+    public static final int TAMANHO_PADRAO = 10;
 
     // Filtros
 
@@ -29,11 +33,12 @@ public class NotificacaoFiltroDTO {
     private String nomePaciente;
     private LocalDate dataNotificacaoDe;
     private LocalDate dataNotificacaoAte;
+    private Boolean duplicadas;
 
     // Paginação
 
-    @Min(value = 0, message = "A página não pode ser negativa")
-    private int pagina = 0;
+    @Min(value = 1, message = "A página deve ser no mínimo 1")
+    private int pagina = PAGINA_PADRAO;
 
     @Min(value = 1, message = "O tamanho da página deve ser no mínimo 1")
     @Max(value = 100, message = "O tamanho da página deve ser no máximo 100")
@@ -50,9 +55,9 @@ public class NotificacaoFiltroDTO {
 
     @Pattern(
             regexp = "(?i)^(asc|desc)$",
-            message = "A direção da ordenação deve ser asc ou desc"
+            message = "A ordem deve ser ASC ou DESC"
     )
-    private String direcao = DIRECAO_PADRAO;
+    private String ordem = ORDEM_PADRAO;
 
     public NotificacaoFiltroDTO() {
     }
@@ -105,6 +110,14 @@ public class NotificacaoFiltroDTO {
         this.dataNotificacaoAte = dataNotificacaoAte;
     }
 
+    public Boolean getDuplicadas() {
+        return duplicadas;
+    }
+
+    public void setDuplicadas(Boolean duplicadas) {
+        this.duplicadas = duplicadas;
+    }
+
     public int getPagina() {
         return pagina;
     }
@@ -129,12 +142,12 @@ public class NotificacaoFiltroDTO {
         this.ordenarPor = ordenarPor;
     }
 
-    public String getDirecao() {
-        return direcao;
+    public String getOrdem() {
+        return ordem;
     }
 
-    public void setDirecao(String direcao) {
-        this.direcao = direcao;
+    public void setOrdem(String ordem) {
+        this.ordem = ordem;
     }
 
     // Validação condicional do período
@@ -143,5 +156,9 @@ public class NotificacaoFiltroDTO {
     public boolean isPeriodoValido() {
         return dataNotificacaoDe == null || dataNotificacaoAte == null
                 || !dataNotificacaoDe.isAfter(dataNotificacaoAte);
+    }
+
+    public boolean isBuscarDuplicadas() {
+        return Boolean.TRUE.equals(duplicadas);
     }
 }

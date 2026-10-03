@@ -16,6 +16,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -45,22 +47,39 @@ class NotificacaoControllerListagemTest {
     }
 
     @Test
-    void semParametrosRetornaOPaginaoPadraoEmOrdemDecrescenteDeData() throws Exception {
-        quandoRetornar(new PaginaDTO<>(List.of(notificacao(3L, "Carla Dias")), 0, 20, 1));
+    void semParametrosUsaPaginaUmTamanhoDezEOrdemDecrescentePorDataDeNotificacao() throws Exception {
+        quandoRetornar(new PaginaDTO<>(List.of(), 1, 10, 0));
+
+        mockMvc.perform(get("/notificacao")).andExpect(status().isOk());
+
+        ArgumentCaptor<NotificacaoFiltroDTO> filtro = ArgumentCaptor.forClass(NotificacaoFiltroDTO.class);
+        verify(service).listar(filtro.capture());
+
+        NotificacaoFiltroDTO recebido = filtro.getValue();
+        assertEquals(1, recebido.getPagina());
+        assertEquals(10, recebido.getTamanho());
+        assertEquals("dataNotificacao", recebido.getOrdenarPor());
+        assertEquals("DESC", recebido.getOrdem());
+        assertFalse(recebido.isBuscarDuplicadas());
+    }
+
+    @Test
+    void semParametrosRetornaAPrimeiraPaginaComDezItensEmOrdemDecrescenteDeData() throws Exception {
+        quandoRetornar(new PaginaDTO<>(List.of(notificacao(3L, "Carla Dias")), 1, 10, 1));
 
         mockMvc.perform(get("/notificacao"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.conteudo[0].id").value(3))
                 .andExpect(jsonPath("$.conteudo[0].nomePaciente").value("Carla Dias"))
-                .andExpect(jsonPath("$.pagina").value(0))
-                .andExpect(jsonPath("$.tamanho").value(20))
+                .andExpect(jsonPath("$.pagina").value(1))
+                .andExpect(jsonPath("$.tamanho").value(10))
                 .andExpect(jsonPath("$.total").value(1))
                 .andExpect(jsonPath("$.totalPaginas").value(1));
     }
 
     @Test
     void parametrosDeConsultaSaoConvertidosNoFiltro() throws Exception {
-        quandoRetornar(new PaginaDTO<>(List.of(), 1, 5, 0));
+        quandoRetornar(new PaginaDTO<>(List.of(), 2, 5, 0));
 
         mockMvc.perform(get("/notificacao")
                         .param("agravo", "Dengue")
@@ -69,10 +88,11 @@ class NotificacaoControllerListagemTest {
                         .param("nomePaciente", "maria")
                         .param("dataNotificacaoDe", "2026-01-01")
                         .param("dataNotificacaoAte", "2026-12-31")
-                        .param("pagina", "1")
+                        .param("duplicadas", "true")
+                        .param("pagina", "2")
                         .param("tamanho", "5")
                         .param("ordenarPor", "nomePaciente")
-                        .param("direcao", "asc"))
+                        .param("ordem", "ASC"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.conteudo").isEmpty());
 
@@ -86,10 +106,11 @@ class NotificacaoControllerListagemTest {
         assertEquals("maria", recebido.getNomePaciente());
         assertEquals(LocalDate.of(2026, 1, 1), recebido.getDataNotificacaoDe());
         assertEquals(LocalDate.of(2026, 12, 31), recebido.getDataNotificacaoAte());
-        assertEquals(1, recebido.getPagina());
+        assertTrue(recebido.isBuscarDuplicadas());
+        assertEquals(2, recebido.getPagina());
         assertEquals(5, recebido.getTamanho());
         assertEquals("nomePaciente", recebido.getOrdenarPor());
-        assertEquals("asc", recebido.getDirecao());
+        assertEquals("ASC", recebido.getOrdem());
     }
 
     @Test
@@ -99,6 +120,74 @@ class NotificacaoControllerListagemTest {
                 .andExpect(jsonPath("$.title").value("Requisição inválida"))
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.erros[0].campo").value("tamanho"));
+    }
+
+    @Test
+    void tamanhoDePaginaAcimaDoMaximoRetornaBadRequest() throws Exception {
+        mockMvc.perform(get("/notificacao").param("tamanho", "101"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.erros[0].campo").value("tamanho"));
+    }
+
+    @Test
+    void tamanhoNaoNumericoRetornaBadRequest() throws Exception {
+        mockMvc.perform(get("/notificacao").param("tamanho", "dez"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.erros[0].campo").value("tamanho"))
+                .andExpect(jsonPath("$.erros[0].mensagem").value("Valor inválido para o parâmetro 'tamanho'"));
+    }
+
+    @Test
+    void paginaZeroRetornaBadRequest() throws Exception {
+        mockMvc.perform(get("/notificacao").param("pagina", "0"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.erros[0].campo").value("pagina"))
+                .andExpect(jsonPath("$.erros[0].mensagem").value("A página deve ser no mínimo 1"));
+    }
+
+    @Test
+    void paginaNegativaRetornaBadRequest() throws Exception {
+        mockMvc.perform(get("/notificacao").param("pagina", "-3"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.erros[0].campo").value("pagina"));
+    }
+
+    @Test
+    void paginaNaoNumericaRetornaBadRequest() throws Exception {
+        mockMvc.perform(get("/notificacao").param("pagina", "abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.erros[0].campo").value("pagina"))
+                .andExpect(jsonPath("$.erros[0].mensagem").value("Valor inválido para o parâmetro 'pagina'"));
+    }
+
+    @Test
+    void ordemDesconhecidaRetornaBadRequest() throws Exception {
+        mockMvc.perform(get("/notificacao").param("ordem", "CIMA"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.erros[0].campo").value("ordem"))
+                .andExpect(jsonPath("$.erros[0].mensagem").value("A ordem deve ser ASC ou DESC"));
+    }
+
+    @Test
+    void ordemVaziaRetornaBadRequest() throws Exception {
+        mockMvc.perform(get("/notificacao").param("ordem", ""))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.erros[0].campo").value("ordem"));
+    }
+
+    @Test
+    void ordemEmMinusculasEhAceita() throws Exception {
+        quandoRetornar(new PaginaDTO<>(List.of(), 1, 10, 0));
+
+        mockMvc.perform(get("/notificacao").param("ordem", "asc"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void duplicadasNaoBooleanoRetornaBadRequest() throws Exception {
+        mockMvc.perform(get("/notificacao").param("duplicadas", "talvez"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.erros[0].campo").value("duplicadas"));
     }
 
     @Test
@@ -127,7 +216,7 @@ class NotificacaoControllerListagemTest {
 
     @Test
     void listagemSemRegistrosRetornaPaginaVaziaComTotalZero() throws Exception {
-        quandoRetornar(new PaginaDTO<>(List.of(), 0, 20, 0));
+        quandoRetornar(new PaginaDTO<>(List.of(), 1, 10, 0));
 
         mockMvc.perform(get("/notificacao"))
                 .andExpect(status().isOk())
@@ -138,7 +227,7 @@ class NotificacaoControllerListagemTest {
 
     @Test
     void respostaEhServidaComoJson() throws Exception {
-        quandoRetornar(new PaginaDTO<>(List.of(notificacao(1L, "Maria")), 0, 20, 1));
+        quandoRetornar(new PaginaDTO<>(List.of(notificacao(1L, "Maria")), 1, 10, 1));
 
         mockMvc.perform(get("/notificacao").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());

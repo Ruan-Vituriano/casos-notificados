@@ -69,9 +69,10 @@ public class GlobalExceptionHandler {
 
     private static Map<String, String> descrever(FieldError erro) {
 
-        String mensagem = erro.getDefaultMessage() != null
-                ? erro.getDefaultMessage()
-                : "Valor inválido";
+        // Falha de conversão (ex.: pagina=abc, duplicadas=talvez): a mensagem padrão do Spring é técnica demais
+        String mensagem = erro.isBindingFailure()
+                ? "Valor inválido para o parâmetro '" + erro.getField() + "'"
+                : erro.getDefaultMessage() != null ? erro.getDefaultMessage() : "Valor inválido";
 
         return Map.of(
                 "campo", erro.getField() != null ? erro.getField() : "",

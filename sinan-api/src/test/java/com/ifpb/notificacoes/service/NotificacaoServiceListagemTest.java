@@ -75,8 +75,8 @@ class NotificacaoServiceListagemTest {
         assertEquals(List.of("Carla Dias", "José Lima", "Beatriz Rocha", "Maria da Silva", "Maria Souza", "João Souza"),
                 nomes(pagina));
         assertEquals(6L, pagina.getTotal());
-        assertEquals(0, pagina.getPagina());
-        assertEquals(20, pagina.getTamanho());
+        assertEquals(1, pagina.getPagina());
+        assertEquals(10, pagina.getTamanho());
         assertEquals(1, pagina.getTotalPaginas());
     }
 
@@ -84,7 +84,7 @@ class NotificacaoServiceListagemTest {
     void paginacaoDivideOResultadoEInformaOTotal() {
         NotificacaoFiltroDTO dto = filtro();
         dto.setTamanho(2);
-        dto.setPagina(0);
+        dto.setPagina(1);
 
         PaginaDTO<NotificacaoResponseDTO> primeira = service.listar(dto);
 
@@ -92,11 +92,24 @@ class NotificacaoServiceListagemTest {
         assertEquals(6L, primeira.getTotal());
         assertEquals(3, primeira.getTotalPaginas());
 
-        dto.setPagina(2);
+        dto.setPagina(3);
         PaginaDTO<NotificacaoResponseDTO> ultima = service.listar(dto);
 
         assertEquals(List.of("Maria Souza", "João Souza"), nomes(ultima));
         assertEquals(6L, ultima.getTotal());
+    }
+
+    @Test
+    void segundaPaginaComecaDepoisDosItensDaPrimeira() {
+        NotificacaoFiltroDTO dto = filtro();
+        dto.setTamanho(4);
+        dto.setPagina(2);
+
+        PaginaDTO<NotificacaoResponseDTO> pagina = service.listar(dto);
+
+        assertEquals(List.of("Maria Souza", "João Souza"), nomes(pagina));
+        assertEquals(2, pagina.getPagina());
+        assertEquals(2, pagina.getTotalPaginas());
     }
 
     @Test
@@ -225,7 +238,7 @@ class NotificacaoServiceListagemTest {
     void ordenacaoAscendentePorNomeDoPaciente() {
         NotificacaoFiltroDTO dto = filtro();
         dto.setOrdenarPor("nomePaciente");
-        dto.setDirecao("asc");
+        dto.setOrdem("asc");
 
         PaginaDTO<NotificacaoResponseDTO> pagina = service.listar(dto);
 
@@ -234,10 +247,10 @@ class NotificacaoServiceListagemTest {
     }
 
     @Test
-    void ordenacaoPorIdRespeitaADirecaoAscendente() {
+    void ordenacaoPorIdRespeitaAOrdemAscendente() {
         NotificacaoFiltroDTO dto = filtro();
         dto.setOrdenarPor("id");
-        dto.setDirecao("ASC");
+        dto.setOrdem("ASC");
 
         PaginaDTO<NotificacaoResponseDTO> pagina = service.listar(dto);
 

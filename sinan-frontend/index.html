@@ -1,11 +1,56 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consulta de notificações · SINAN</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    
+  <header class="topo">
+    <strong>SINAN · Notificações</strong>
+    <nav><a href="index.html" aria-current="page">Consulta</a><a href="cadastro.html">Nova notificação</a></nav>
+  </header>
+  <main>
+    <h1>Consulta de notificações</h1>
+    <div id="aviso" class="aviso" role="status" hidden></div>
+
+    <form id="filtros" class="painel" autocomplete="off">
+      <div class="grade">
+        <div class="campo"><label for="agravo">Agravo</label><input id="agravo" name="agravo"></div>
+        <div class="campo"><label for="nomePaciente">Paciente</label><input id="nomePaciente" name="nomePaciente"></div>
+        <div class="campo"><label for="ufNotificacao">UF</label><input id="ufNotificacao" name="ufNotificacao" maxlength="2"></div>
+        <div class="campo"><label for="municipioNotificacao">Município</label><input id="municipioNotificacao" name="municipioNotificacao"></div>
+        <div class="campo"><label for="dataNotificacaoDe">Notificada de</label><input id="dataNotificacaoDe" name="dataNotificacaoDe" type="date"></div>
+        <div class="campo"><label for="dataNotificacaoAte">até</label><input id="dataNotificacaoAte" name="dataNotificacaoAte" type="date"></div>
+        <div class="campo"><label for="tamanho">Itens por página</label>
+          <select id="tamanho" name="tamanho"><option>10</option><option>20</option><option>50</option><option>100</option></select></div>
+        <div class="campo check"><input id="duplicadas" name="duplicadas" type="checkbox" value="true"><label for="duplicadas">Somente notificações duplicadas</label></div>
+      </div>
+      <div class="acoes"><button type="submit">Buscar</button><button type="button" id="limpar" class="secundario">Limpar filtros</button></div>
+    </form>
+
+    <section class="painel" aria-live="polite">
+      <div class="rolagem">
+        <table>
+          <thead><tr id="cabecalho"></tr></thead>
+          <tbody id="corpo"></tbody>
+        </table>
+      </div>
+      <p id="vazio" class="vazio" hidden>Nenhuma notificação encontrada. Ajuste os filtros ou <a href="cadastro.html">cadastre uma nova</a>.</p>
+      <div class="paginacao">
+        <span id="resumo"></span>
+        <div><button id="anterior" class="secundario" type="button">Anterior</button><button id="proxima" class="secundario" type="button">Próxima</button></div>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="confirmacao">
+    <p id="confirmacaoTexto"></p>
+    <div class="acoes"><button id="cancelar" class="secundario" type="button">Cancelar</button><button id="confirmar" class="perigo solido" type="button">Excluir</button></div>
+  </dialog>
+  <script src="js/api.js"></script>
+  <script src="js/listagem.js"></script>
 </body>
 </html>

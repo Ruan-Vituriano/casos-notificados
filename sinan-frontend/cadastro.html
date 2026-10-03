@@ -1,11 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notificação · SINAN</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    
+  <header class="topo">
+    <strong>SINAN · Notificações</strong>
+    <nav><a href="index.html">Consulta</a><a href="cadastro.html" aria-current="page">Nova notificação</a></nav>
+  </header>
+  <main>
+    <h1 id="titulo">Nova notificação</h1>
+    <div id="aviso" class="aviso erro-geral" role="alert" hidden></div>
+    <form id="formulario" novalidate autocomplete="off">
+      <div id="secoes"></div>
+      <div class="acoes"><button type="submit" id="salvar">Salvar notificação</button><a class="botao secundario" href="index.html">Cancelar</a></div>
+    </form>
+  </main>
+  <script src="js/api.js"></script>
+  <script src="js/cadastro.js"></script>
 </body>
 </html>
