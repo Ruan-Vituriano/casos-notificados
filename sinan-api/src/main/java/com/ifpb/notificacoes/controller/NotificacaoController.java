@@ -1,11 +1,15 @@
 package com.ifpb.notificacoes.controller;
 
+import com.ifpb.notificacoes.dto.NotificacaoFiltroDTO;
 import com.ifpb.notificacoes.dto.NotificacaoRequestDTO;
 import com.ifpb.notificacoes.dto.NotificacaoResponseDTO;
+import com.ifpb.notificacoes.dto.PaginaDTO;
 import com.ifpb.notificacoes.service.NotificacaoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -24,6 +28,12 @@ public class NotificacaoController {
 
     public NotificacaoController(NotificacaoService service) {
         this.service = service;
+    }
+
+    @GetMapping
+    public ResponseEntity<PaginaDTO<NotificacaoResponseDTO>> listar(@Valid @ModelAttribute NotificacaoFiltroDTO filtro) {
+
+        return ResponseEntity.ok(service.listar(filtro));
     }
 
     @PostMapping

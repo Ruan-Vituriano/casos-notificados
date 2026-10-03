@@ -2,13 +2,38 @@ package com.ifpb.notificacoes.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.validation.BindException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.net.URI;
+import java.util.List;
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(BindException.class)
+    public ProblemDetail handleBindException(BindException ex) {
+        // Cobre @Valid no corpo da requisição (POST/PUT) e nos parâmetros de consulta do GET /notificacao
+        List<Map<String, String>> erros = ex.getBindingResult().getFieldErrors().stream()
+                .map(GlobalExceptionHandler::descrever)
+                .toList();
+
+        String detalhe = erros.isEmpty()
+                ? "Requisição inválida"
+                : erros.get(0).get("mensagem");
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, detalhe);
+
+        problemDetail.setType(URI.create("https://sua-api.com/erros/requisicao-invalida"));
+        problemDetail.setTitle("Requisição inválida");
+        problemDetail.setProperty("timestamp", System.currentTimeMillis());
+        problemDetail.setProperty("erros", erros);
+
+        return problemDetail;
+    }
 
     @ExceptionHandler(RegraNegocioException.class)
     public ProblemDetail handleRegraNegocioException(RegraNegocioException ex) {
@@ -40,5 +65,17 @@ public class GlobalExceptionHandler {
         problemDetail.setProperty("timestamp", System.currentTimeMillis());
 
         return problemDetail;
+    }
+
+    private static Map<String, String> descrever(FieldError erro) {
+
+        String mensagem = erro.getDefaultMessage() != null
+                ? erro.getDefaultMessage()
+                : "Valor inválido";
+
+        return Map.of(
+                "campo", erro.getField() != null ? erro.getField() : "",
+                "mensagem", mensagem
+        );
     }
 }
